@@ -3,6 +3,8 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
+
 
 public class SerializeCode {
 	public static void main(String[] args) {
@@ -11,15 +13,16 @@ public class SerializeCode {
 
 	    /** Serializing the object to file on filename***/
 	    // Save the object to file
-	    FileOutputStream fos = null;
+	    ByteOutputStream fos = null;
 	    ObjectOutputStream out = null;
 	    
 	    try {
 	    	System.out.println("Serializing object " + p.toString() + "... into " + filename );
-	      fos = new FileOutputStream(filename);
+	      fos = new ByteOutputStream();
 	      out = new ObjectOutputStream(fos);
 	      out.writeObject(p);
-	      out.close();
+	      
+	      
 	      
 	    } catch (Exception ex) {
 	      ex.printStackTrace();

@@ -1,10 +1,13 @@
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
+import com.sun.xml.internal.ws.util.ByteArrayBuffer;
 
 public class Server {
 	
@@ -49,7 +52,7 @@ public class Server {
 	private static class Service extends Thread{
 		Socket dataSocket;
 		PrintWriter out;
-		BufferedReader in;
+		private BufferedInputStream in;
 		
 		public Service (Socket dataSocket){
 			this.dataSocket = dataSocket;
@@ -57,7 +60,7 @@ public class Server {
 			try{
 				
 				this.out = new PrintWriter(this.dataSocket.getOutputStream(), true);
-				this.in = new BufferedReader(new InputStreamReader(this.dataSocket.getInputStream()));
+				this.in = new BufferedInputStream(this.dataSocket.getInputStream());
 			}
 			catch (IOException e){
 				System.err.println(this.getName() + "Error: cannot get data input stream.");
@@ -65,19 +68,26 @@ public class Server {
 		}
 		
 		public void run(){
+			System.out.println("Serving connection");
 			String queryMessage = "";
-			String responseMessage = "";
+		
 			
-			try{
-				queryMessage = in.readLine();
+		
+			System.out.print("Deserializing...");
+			try {
+				ObjectInputStream oi = new ObjectInputStream(dataSocket.getInputStream());
+				MyRandomClass receivedObject = (MyRandomClass)oi.readObject();
+				oi.close();
+				
+				System.out.println(receivedObject.toString());
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			catch (IOException e){
-				System.err.println(this.getName() + " Error: cannot read message.");
-			}
-			
-			responseMessage = "Answer: MEH: " + queryMessage;
-			
-			out.println(responseMessage);
+			System.out.println("Object sucessfully deserialized!");
 			
 			try{
 				in.close();
