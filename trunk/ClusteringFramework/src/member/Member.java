@@ -245,6 +245,31 @@ public class Member{
 		return this.info.getPort();
 	}
 	
+	public void broadCastMessage(String message, Set<MemberInfo> memberInfoSet){
+		for(MemberInfo mem: memberInfoSet){
+			sendMessage(message, mem);
+		}
+	}
+	
+	public void sendMessage(String message, MemberInfo destinationMember) {
+		if(destinationMember.getMemberID() != -1) {
+			Socket dSocket = new Socket();
+			try {
+				dSocket = this.controlSocket.accept();
+				DataOutputStream outToMember = new DataOutputStream(dSocket.getOutputStream());
+				outToMember.writeBytes(message+'\n');
+				
+			} catch (IOException e) {
+				System.err.println(String.format("Could send message %s to member [%s] ", message, destinationMember.getMemberID()));
+				e.printStackTrace();
+			}
+		}
+		else {
+			System.out.println(String.format("Message not sent, member [%s]:%d is not connected", 
+					destinationMember.getAddress(), destinationMember.getPort()));
+		}
+	}
+	
 	enum Command{
 		JOIN("JOIN"),
 		EXEC("EXEC"),
