@@ -65,7 +65,8 @@ public class Cluster {
 				DataInputStream inFromMember = new DataInputStream(sk.getInputStream());
 				/** Wait for response **/
 				String memberResponse = inFromMember.readLine();
-				if (memberResponse.equalsIgnoreCase("OK")){
+				double connectedMemberID = Double.parseDouble(memberResponse);
+				extractedMember.setMemberID(connectedMemberID);
 					memberResponse = inFromMember.readLine();
 					/** Member response should be the cluster id */
 					this.clusterID = Double.parseDouble(memberResponse);
@@ -83,7 +84,7 @@ public class Cluster {
 							Iterator<MemberInfo> it2 = this.members.iterator();
 							while (it2.hasNext()){
 								MemberInfo mem = it2.next();
-								if (mem.getAddress() == receivedObject.getAddress() && mem.getPort() == receivedObject.getPort()){
+								if ((mem.getAddress().compareTo(receivedObject.getAddress())==0) && mem.getPort() == receivedObject.getPort()){
 									mem.setMemberID(mem.getMemberID());
 								}
 							}
@@ -96,10 +97,12 @@ public class Cluster {
 					outToMember.writeBytes("ACK\n");
 					System.out.println("ACK sent.");
 					outToMember.writeBytes(new String(""+this.clusterCaller.getMemberID()+"\n"));
-					System.out.println("SELF ID SENT.");
+					outToMember.writeBytes(new String(""+this.clusterCaller.getPort()+"\n"));
+
+					System.out.println("SELF ID AND PORT SENT.");
 
 					
-				}
+				
 			} catch (Exception e) {
 				System.err.println("Error getting output stream to member.");
 				e.printStackTrace();
