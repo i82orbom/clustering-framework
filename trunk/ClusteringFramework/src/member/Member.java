@@ -32,21 +32,30 @@ public class Member{
 	
 	public void initMemberCallback(){
 		try {
-			this.dataSocket = this.controlSocket.accept();
-			
-			DataOutputStream outToMember = new DataOutputStream(this.dataSocket.getOutputStream());
-			DataInputStream inFromMember = new DataInputStream(this.dataSocket.getInputStream());
-			/** RECEIVE COMMAND */
-			String command = inFromMember.readLine();
-			if (command.equalsIgnoreCase(Command.JOIN.getValue())){
-				processJoinCommand(inFromMember, outToMember);
-			}
-			else if (command.equalsIgnoreCase(Command.EXEC.getValue())){
+			while(true){
+
+				System.out.println("Waiting connection...");
 				
+				this.dataSocket = this.controlSocket.accept();
+				
+				System.out.print("Connection from: " + this.dataSocket.getInetAddress().getCanonicalHostName());
+
+				DataOutputStream outToMember = new DataOutputStream(this.dataSocket.getOutputStream());
+				DataInputStream inFromMember = new DataInputStream(this.dataSocket.getInputStream());
+				/** RECEIVE COMMAND */
+				String command = inFromMember.readLine();
+				
+				if (command.equalsIgnoreCase(Command.JOIN.getValue())){
+					System.out.println("JOIN request received.");
+					processJoinCommand(inFromMember, outToMember);
+				}
+				else if (command.equalsIgnoreCase(Command.EXEC.getValue())){
+
+				}
+
+
 			}
 			
-			
-			System.out.println("Connection accepted from: " + this.dataSocket.getInetAddress().getCanonicalHostName());
 		} catch (IOException e) {
 			System.err.println("I/O exception in member callback.");
 			e.printStackTrace();
@@ -55,8 +64,9 @@ public class Member{
 
 	public void processJoinCommand(DataInputStream inFromMember, DataOutputStream outToMember){
 		try {
-			outToMember.writeBytes("OK");
-			outToMember.writeBytes(new String(""+this.cluster.getClusterID()));
+			outToMember.writeBytes("OK\n");
+			outToMember.writeBytes(new String(""+this.cluster.getClusterID())+"\n");
+			System.out.println("OK and cluster ID sent");
 			
 			Iterator<MemberInfo> it = this.cluster.getMembers().iterator();
 			
@@ -64,8 +74,10 @@ public class Member{
 				ObjectOutputStream os = new ObjectOutputStream(outToMember);
 				os.writeObject(it.next());
 				os.flush();
-				os.close();
 			}
+			
+			System.out.println("Member info sent");
+
 
 		} catch (IOException e) {
 			System.err.println("Error processing join request.");
@@ -74,6 +86,7 @@ public class Member{
 		
 		String ack = null;
 		try {
+			System.out.print("Waiting for ACK...");
 			ack = inFromMember.readLine();
 			if (ack.equalsIgnoreCase("ACK")){
 				System.out.println("Member accepted");

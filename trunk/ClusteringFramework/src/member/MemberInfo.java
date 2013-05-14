@@ -1,6 +1,8 @@
 package member;
 
-public class MemberInfo {
+import java.io.Serializable;
+
+public class MemberInfo implements Serializable{
 
 	private double memberID;
 	private int port;
