@@ -19,8 +19,7 @@ public class Member{
 	private Cluster cluster;
 	
 	public Member(int port){
-		this.info = new MemberInfo(null, port);
-		this.info.setMemberID(Math.random());
+		this.info = new MemberInfo(null, port, Math.random());
 
 		try {
 			this.controlSocket = new ServerSocket(this.info.getPort());			

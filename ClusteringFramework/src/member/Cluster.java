@@ -39,7 +39,7 @@ public class Cluster {
 		MemberInfo extractedMember = null;
 		boolean memberConnected = false;
 		Socket sk = null;
-		while (it.hasNext()){ /** Cluster has members (maybe not connected) */
+		while (it.hasNext() && memberConnected == false){ /** Cluster has members (maybe not connected) */
 			extractedMember = it.next();
 			
 			/** Try connection to member */
@@ -95,7 +95,7 @@ public class Cluster {
 					System.out.println("Received member info.");
 					outToMember.writeBytes("ACK\n");
 					System.out.println("ACK sent.");
-					outToMember.writeBytes(new String(""+this.clusterCaller.getMemberID()));
+					outToMember.writeBytes(new String(""+this.clusterCaller.getMemberID()+"\n"));
 					System.out.println("SELF ID SENT.");
 
 					
