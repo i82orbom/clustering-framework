@@ -9,8 +9,11 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+
+import FingerPrinting.computation.matching.DataPoint;
 
 public class Member{
 
@@ -83,8 +86,44 @@ public class Member{
 					System.out.println("JOIN request received.");
 					processJoinCommand(inFromMember, outToMember);
 				}
-				else if (command.equalsIgnoreCase(Command.EXEC.getValue())){
-
+				else if (command.equalsIgnoreCase(Command.EXEC_NOTIFICATION.getValue())){ /** EXEC FROM BROTHER */
+					// RECEIVE DATAPOINT
+					ArrayList<DataPoint> receivedDescriptors;
+					ObjectInputStream oi = new ObjectInputStream(inFromMember);
+					receivedDescriptors = (ArrayList<DataPoint>)oi.readObject();
+					// SEND GO
+					outToMember.writeBytes("GO\n");
+					// EXECUTE AND GIVE RESULT AND WATCH FOR POSSIBLE MSG FROM OTHERS
+					
+				}
+				else if (command.equalsIgnoreCase(Command.EXEC_QUERY.getValue())){ /** EXEC QUERY FROM CLIENT */
+					// RECEIVE DATAPOINT
+					ArrayList<DataPoint> receivedDescriptors;
+					ObjectInputStream oi = new ObjectInputStream(inFromMember);
+					receivedDescriptors = (ArrayList<DataPoint>) oi.readObject();
+					// SEND EXEC_NOTIFICATION TO THE REST OF THE CLUSTER
+					broadcastMessage(Command.EXEC_NOTIFICATION.getValue(), this.cluster.getMembers());
+					// SEND RECEIVED DATAPOINT
+					ArrayList<Socket> listSockets = new ArrayList<Socket>();
+					for(MemberInfo mem : this.cluster.getMembers()){
+						if (mem.getMemberID() != -1){
+							Socket sk = new Socket(mem.getAddress(),mem.getPort());
+							ObjectOutputStream oo = new ObjectOutputStream(sk.getOutputStream());
+							oo.writeObject(receivedDescriptors);
+							oo.flush();
+							listSockets.add(sk);
+						}
+					}
+					// WAIT FOR GO
+					for (Socket sk : listSockets){
+						DataInputStream di = new DataInputStream(sk.getInputStream());
+						String go = di.readLine();
+						// WE SUPOSSE IT'S GO MSG
+					}
+					
+					// EXECUTE AND WATCH FOR RESULT FROM OTHERS
+					
+					
 				}
 				else if (command.equalsIgnoreCase(Command.UPDATE_CLUSTER_STATUS.getValue())){
 					processUpdateCommand(inFromMember);
@@ -92,11 +131,13 @@ public class Member{
 				else{
 					System.err.println("UNRECOGNIZED COMMAND");
 				}
-
 			}
 			
 		} catch (IOException e) {
 			System.err.println("I/O exception in member callback.");
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			System.err.println("ClassNotFoundException in member callback.");
 			e.printStackTrace();
 		}
 	}
@@ -245,7 +286,7 @@ public class Member{
 		return this.info.getPort();
 	}
 	
-	public void broadCastMessage(String message, Set<MemberInfo> memberInfoSet){
+	public void broadcastMessage(String message, Set<MemberInfo> memberInfoSet){
 		for(MemberInfo mem: memberInfoSet){
 			sendMessage(message, mem);
 		}
@@ -253,16 +294,20 @@ public class Member{
 	
 	public void sendMessage(String message, MemberInfo destinationMember) {
 		if(destinationMember.getMemberID() != -1) {
-			Socket dSocket = new Socket();
+			Socket dSocket = null;
 			try {
-				dSocket = this.controlSocket.accept();
+				dSocket = new Socket(destinationMember.getAddress(), destinationMember.getPort());
 				DataOutputStream outToMember = new DataOutputStream(dSocket.getOutputStream());
 				outToMember.writeBytes(message+'\n');
 				
-			} catch (IOException e) {
-				System.err.println(String.format("Could send message %s to member [%s] ", message, destinationMember.getMemberID()));
-				e.printStackTrace();
+			} catch (UnknownHostException e1) {
+				System.err.println(String.format("Could send message %s to member [%s] unknown host exception", message, destinationMember.getMemberID()));
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				System.err.println(String.format("Could send message %s to member [%s] I/O Exception", message, destinationMember.getMemberID()));
+				e1.printStackTrace();
 			}
+			
 		}
 		else {
 			System.out.println(String.format("Message not sent, member [%s]:%d is not connected", 
@@ -272,7 +317,8 @@ public class Member{
 	
 	enum Command{
 		JOIN("JOIN"),
-		EXEC("EXEC"),
+		EXEC_QUERY("EXEC_QUERY"),
+		EXEC_NOTIFICATION("EXEC_NOTIFICATION"),
 		UPDATE_CLUSTER_STATUS("UPDATE");
 		
 		String value;
