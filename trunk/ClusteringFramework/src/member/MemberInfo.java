@@ -9,9 +9,10 @@ public class MemberInfo implements Serializable{
 	private String address;
 
 
-	public MemberInfo(String address, int port){
+	public MemberInfo(String address, int port, double d){
 		this.address = address;
 		this.port = port;
+		this.memberID = d;
 	}
 	
 	public double getMemberID() {
