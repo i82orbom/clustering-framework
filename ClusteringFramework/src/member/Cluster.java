@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Iterator;
 import java.util.Set;
@@ -42,31 +43,39 @@ public class Cluster {
 			
 			/** Try connection to member */
 			try {
-				sk = new Socket(extractedMember.getAddress(), extractedMember.getPort());
+				sk = new Socket();
+				sk.connect(new InetSocketAddress(extractedMember.getAddress(), extractedMember.getPort()), 1000);
 				memberConnected = true;
 			} catch (Exception e){
 				/** Connection not possible */
 				memberConnected = false;
+				System.out.println("No member connected...");
 			}
 		
 		}
 		
 		if (memberConnected == true){
+			System.out.println("Some member is connected!");
 			  try {
 				DataOutputStream outToMember = new DataOutputStream(sk.getOutputStream());
-				outToMember.writeBytes("JOIN");
+				outToMember.writeBytes("JOIN\n");
+				System.out.println("JOIN request sent.");
+				
 				DataInputStream inFromMember = new DataInputStream(sk.getInputStream());
 				/** Wait for response **/
 				String memberResponse = inFromMember.readLine();
-				if (memberResponse.equalsIgnoreCase("OK")){
+				if (memberResponse.equalsIgnoreCase("OK\n")){
 					memberResponse = inFromMember.readLine();
 					/** Member response should be the cluster id */
 					this.clusterID = Double.parseDouble(memberResponse);
 					/** Now should answer with the IDs of the rest of the cluster */
 					boolean done = false;
 					
+					System.out.println("Received cluster id: " + this.clusterID);
+					
 					while (!done){
 						try{
+							sk.setSoTimeout(100);
 							ObjectInputStream oi = new ObjectInputStream(sk.getInputStream());
 							MemberInfo receivedObject = (MemberInfo)oi.readObject();
 							oi.close();
@@ -83,8 +92,10 @@ public class Cluster {
 							done = true;
 						}
 					}
-					
-					outToMember.writeBytes("ACK");
+					System.out.println("Received member info.");
+					outToMember.writeBytes("ACK\n");
+					System.out.println("ACK sent.");
+
 					
 				}
 			} catch (Exception e) {

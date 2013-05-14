@@ -8,16 +8,13 @@ public class TestMember {
 
 	public static void main (String...args) throws InterruptedException{
 		
-	
 		Set<MemberInfo> members = new HashSet<MemberInfo>();
+		members.add(new MemberInfo("169.254.169.23", 4000));
 		members.add(new MemberInfo("localhost", 4000));
-		members.add(new MemberInfo("localhost", 4001));
-		members.add(new MemberInfo("localhost", 4002));
+
 				
-		Member member = new Member(3999);
+		Member member = new Member(4001);
 		member.joinCluster(members);
 		member.initMemberCallback();
-			
-		
 	}
 }
