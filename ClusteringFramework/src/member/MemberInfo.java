@@ -7,8 +7,8 @@ public class MemberInfo implements Serializable{
 	private double memberID;
 	private int port;
 	private String address;
-	
-	
+
+
 	public MemberInfo(String address, int port){
 		this.address = address;
 		this.port = port;

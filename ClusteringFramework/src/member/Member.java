@@ -89,17 +89,28 @@ public class Member{
 			System.out.print("Waiting for ACK...");
 			ack = inFromMember.readLine();
 			if (ack.equalsIgnoreCase("ACK")){
+				ack = inFromMember.readLine(); // RECEIVE ID FROM MEMBER
+				
+				Iterator<MemberInfo> it = this.cluster.getMembers().iterator();
+				
+				while(it.hasNext()){
+					MemberInfo mem = it.next();
+					if ( mem.getAddress() == this.dataSocket.getInetAddress().getHostAddress() && mem.getPort() == this.dataSocket.getPort()){
+						mem.setMemberID(Double.parseDouble(ack));
+					}
+				}
+				
 				System.out.println("Member accepted");
 			}
 		} catch (IOException e) {
-			System.out.println("Expected ACK, recived: " + ack);
+			System.out.println("Expected ACK, received: " + ack);
 		}
 		
 		
 	}
 
 	public void joinCluster(Set<MemberInfo> clusterMembers){
-		this.cluster = new Cluster();
+		this.cluster = new Cluster(this.info);
 		this.cluster.setMembers(clusterMembers);
 		
 		/** Try to join */

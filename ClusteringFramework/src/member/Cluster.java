@@ -13,15 +13,16 @@ public class Cluster {
 	
 	private Set<MemberInfo> members;
 	private double clusterID;
-	
+	private MemberInfo clusterCaller; /* Because members has the rest of the members in the cluster, this variable stores the other member */
 	
 
 	public double getClusterID() {
 		return clusterID;
 	}
 
-	public Cluster(){
+	public Cluster(MemberInfo caller){
 		members = null;
+		this.clusterCaller = caller;
 	}
 	
 	public Set<MemberInfo> getMembers() {
@@ -78,7 +79,6 @@ public class Cluster {
 							sk.setSoTimeout(100);
 							ObjectInputStream oi = new ObjectInputStream(sk.getInputStream());
 							MemberInfo receivedObject = (MemberInfo)oi.readObject();
-							oi.close();
 
 							Iterator<MemberInfo> it2 = this.members.iterator();
 							while (it2.hasNext()){
@@ -95,6 +95,8 @@ public class Cluster {
 					System.out.println("Received member info.");
 					outToMember.writeBytes("ACK\n");
 					System.out.println("ACK sent.");
+					outToMember.writeBytes(new String(""+this.clusterCaller.getMemberID()));
+					System.out.println("SELF ID SENT.");
 
 					
 				}
