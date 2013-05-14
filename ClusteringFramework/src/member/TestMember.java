@@ -1,36 +1,23 @@
 package member;
 
-import member.iMember.MemberType;
+import java.util.HashSet;
+import java.util.Set;
+
 
 public class TestMember {
 
-	public static void main (String...args){
+	public static void main (String...args) throws InterruptedException{
 		
-		Thread th = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				System.out.println("Thread 1, running");
-
-				MemberInstance mem = new MemberInstance(MemberType.Local,null,4080);
+	
+		Set<MemberInfo> members = new HashSet<MemberInfo>();
+		members.add(new MemberInfo("localhost", 4000));
+		members.add(new MemberInfo("localhost", 4001));
+		members.add(new MemberInfo("localhost", 4002));
 				
-			}
-		});
-		th.start();
-		
-		Thread th2 = new Thread(new Runnable() {
+		Member member = new Member(3999);
+		member.joinCluster(members);
+		member.initMemberCallback();
 			
-			@Override
-			public void run() {
-				System.out.println("Thread 2, running");
-
-				MemberInstance mem = new MemberInstance(MemberType.Remote, "localhost", 4080);
-				
-			}
-		});
-		
-		th2.start();
-		
 		
 	}
 }
