@@ -85,7 +85,7 @@ public class Cluster {
 							while (it2.hasNext()){
 								MemberInfo mem = it2.next();
 								if ((mem.getAddress().compareTo(receivedObject.getAddress())==0) && mem.getPort() == receivedObject.getPort()){
-									mem.setMemberID(mem.getMemberID());
+									mem.setMemberID(receivedObject.getMemberID());
 								}
 							}
 						}
