@@ -65,7 +65,7 @@ public class Cluster {
 				DataInputStream inFromMember = new DataInputStream(sk.getInputStream());
 				/** Wait for response **/
 				String memberResponse = inFromMember.readLine();
-				if (memberResponse.equalsIgnoreCase("OK\n")){
+				if (memberResponse.equalsIgnoreCase("OK")){
 					memberResponse = inFromMember.readLine();
 					/** Member response should be the cluster id */
 					this.clusterID = Double.parseDouble(memberResponse);
