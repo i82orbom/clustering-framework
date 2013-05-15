@@ -21,6 +21,7 @@ public class ExecutionClient {
 	private MPEG7Description mpeg7;
 	private ArrayList<DataPoint> descriptorList;
 	private MemberInfo requestMember;
+	private Socket openSocket;
 	
 	public void loadMPEG7(String xmlFile){
 		mpeg7 = new MPEG7Description();
@@ -37,13 +38,11 @@ public class ExecutionClient {
 	}
 	
 
-	public void sendDescriptors(){
+	private void sendDescriptors(){
 		try {
-			Socket sk = new Socket(this.requestMember.getAddress(), this.requestMember.getPort());
-			ObjectOutputStream oo = new ObjectOutputStream(sk.getOutputStream());
+			ObjectOutputStream oo = new ObjectOutputStream(openSocket.getOutputStream());
 			oo.writeObject(this.descriptorList);
 			oo.flush();
-			sk.close();
 		} catch (UnknownHostException e) {
 			System.err.println("Could not send descriptors to member, unknown host");
 			e.printStackTrace();
@@ -53,13 +52,12 @@ public class ExecutionClient {
 		}
 	}
 	
-	public void sendExecutionMsg() {
+	private void sendExecutionMsg() {
 		String message = "EXEC_QUERY";
-		if(requestMember.getMemberID() != -1) {
-			Socket dSocket = null;
+			
 			try {
-				dSocket = new Socket(requestMember.getAddress(), requestMember.getPort());
-				DataOutputStream outToMember = new DataOutputStream(dSocket.getOutputStream());
+				openSocket = new Socket(requestMember.getAddress(), requestMember.getPort());
+				DataOutputStream outToMember = new DataOutputStream(openSocket.getOutputStream());
 				outToMember.writeBytes(message+'\n');
 				
 			} catch (UnknownHostException e1) {
@@ -70,11 +68,12 @@ public class ExecutionClient {
 				e1.printStackTrace();
 			}
 			
-		}
-		else {
-			System.out.println(String.format("Message not sent, member [%s]:%d is not connected", 
-					requestMember.getAddress(), requestMember.getPort()));
-		}
+	}
+	
+	public void exec(MemberInfo inMember){
+		this.requestMember = inMember;
+		sendExecutionMsg();
+		sendDescriptors();
 	}
 
 }
