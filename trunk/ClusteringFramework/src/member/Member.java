@@ -87,26 +87,36 @@ public class Member{
 					processJoinCommand(inFromMember, outToMember);
 				}
 				else if (command.equalsIgnoreCase(Command.EXEC_NOTIFICATION.getValue())){ /** EXEC FROM BROTHER */
+					System.out.print("EXEC_NOTIFICATION received!\nReceiving datapoint sample...");
+					
 					// RECEIVE DATAPOINT
 					ArrayList<DataPoint> receivedDescriptors;
 					ObjectInputStream oi = new ObjectInputStream(inFromMember);
 					receivedDescriptors = (ArrayList<DataPoint>)oi.readObject();
+					System.out.println("DONE");
 					// SEND GO
 					outToMember.writeBytes("GO\n");
+					System.out.println("SENT GO");
+
 					// EXECUTE AND GIVE RESULT AND WATCH FOR POSSIBLE MSG FROM OTHERS
 					
+					System.out.println("BROTHER_EXECUTING...");
 				}
 				else if (command.equalsIgnoreCase(Command.EXEC_QUERY.getValue())){ /** EXEC QUERY FROM CLIENT */
+					System.out.println("EXEC QUERY RECEIVED!");
 					// RECEIVE DATAPOINT
 					ArrayList<DataPoint> receivedDescriptors;
 					ObjectInputStream oi = new ObjectInputStream(inFromMember);
 					receivedDescriptors = (ArrayList<DataPoint>) oi.readObject();
+					System.out.println("DATAPOINT SAMPLE RECEIVED!");
 					// SEND EXEC_NOTIFICATION TO THE REST OF THE CLUSTER
 					broadcastMessage(Command.EXEC_NOTIFICATION.getValue(), this.cluster.getMembers());
+					System.out.println("BROADCAST EXEC_NOT SENT");
 					// SEND RECEIVED DATAPOINT
 					ArrayList<Socket> listSockets = new ArrayList<Socket>();
 					for(MemberInfo mem : this.cluster.getMembers()){
 						if (mem.getMemberID() != -1){
+							System.out.println("SENDING SAMPLE DATA POINT TO OTHERS");
 							Socket sk = new Socket(mem.getAddress(),mem.getPort());
 							ObjectOutputStream oo = new ObjectOutputStream(sk.getOutputStream());
 							oo.writeObject(receivedDescriptors);
@@ -119,10 +129,12 @@ public class Member{
 						DataInputStream di = new DataInputStream(sk.getInputStream());
 						String go = di.readLine();
 						// WE SUPOSSE IT'S GO MSG
+						System.out.println("RECEIVED " + go + "!");
+
 					}
 					
 					// EXECUTE AND WATCH FOR RESULT FROM OTHERS
-					
+					System.out.println("MAIN_EXECUTING...");
 					
 				}
 				else if (command.equalsIgnoreCase(Command.UPDATE_CLUSTER_STATUS.getValue())){
@@ -205,7 +217,7 @@ public class Member{
 
 	/**
 	 * 
-	 * @param exceptID represents the new member, so it's not necesary to tell him who's connected already
+	 * @param exceptID represents the new member, so it's not necessary to tell him who's connected already
 	 */
 	public void broadcastJoin(MemberInfo justJoined){
 		// GET MEMBERS
