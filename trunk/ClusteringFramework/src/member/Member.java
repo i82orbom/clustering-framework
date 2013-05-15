@@ -13,6 +13,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.abdera.i18n.rfc4646.enums.Singleton;
+
+import member.algorithm.DistributedAlgorithm;
+import member.algorithm.SignalType;
+
 import FingerPrinting.computation.matching.DataPoint;
 
 public class Member{
@@ -101,6 +106,24 @@ public class Member{
 					// EXECUTE AND GIVE RESULT AND WATCH FOR POSSIBLE MSG FROM OTHERS
 					
 					System.out.println("BROTHER_EXECUTING...");
+					// OPEN SOCKETS FOR THE REST 
+					ArrayList<Socket> brotherSockList = new ArrayList<Socket>();
+					for(MemberInfo mem : this.cluster.getMembers()){
+						if (mem.getMemberID() != -1){
+							Socket sk = new Socket(mem.getAddress(),getPort());
+							brotherSockList.add(sk);
+						}
+					}
+					// dataSocket it's the parent who called this brother
+					DistributedAlgorithm da = new DistributedAlgorithm(dataSocket, brotherSockList, false, receivedDescriptors);
+					
+					if (da.getSignalType() == SignalType.ALGORITHM_END_RAISED){
+						// IF THE END OF THE ALGORITHM IS RAISED THE RESULT HAS TO BE SENT BACK
+					}
+					else if (da.getSignalType() == SignalType.THRESHOLD_RAISED){
+						// IF STOP FROM MEMBER, IT DOESN'T SEND THE RESULT BACK
+					}
+					
 				}
 				else if (command.equalsIgnoreCase(Command.EXEC_QUERY.getValue())){ /** EXEC QUERY FROM CLIENT */
 					System.out.println("EXEC QUERY RECEIVED!");
@@ -140,6 +163,17 @@ public class Member{
 					
 					// EXECUTE AND WATCH FOR RESULT FROM OTHERS
 					System.out.println("MAIN_EXECUTING...");
+					
+					DistributedAlgorithm da = new DistributedAlgorithm(dataSocket, listSockets, true, receivedDescriptors);
+
+					
+					if (da.getSignalType() == SignalType.ALGORITHM_END_RAISED){
+						// IF THE END OF THE ALGORITHM IS RAISED THE RESULT HAS TO BE SENT BACK
+					}
+					else if (da.getSignalType() == SignalType.THRESHOLD_RAISED){
+						// IF STOP FROM MEMBER, IT DOESN'T SEND THE RESULT BACK
+					}
+					
 					
 				}
 				else if (command.equalsIgnoreCase(Command.UPDATE_CLUSTER_STATUS.getValue())){
