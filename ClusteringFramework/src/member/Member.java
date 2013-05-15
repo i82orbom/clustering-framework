@@ -174,6 +174,7 @@ public class Member{
 						// IF STOP FROM MEMBER, IT DOESN'T SEND THE RESULT BACK
 					}
 					
+					System.out.println("PREDICTION:\n\t" + da.getTitleResult() + " (" + da.getScoreResult() + ")");
 					
 				}
 				else if (command.equalsIgnoreCase(Command.UPDATE_CLUSTER_STATUS.getValue())){
