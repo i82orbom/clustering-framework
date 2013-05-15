@@ -90,9 +90,9 @@ public class Member{
 					System.out.print("EXEC_NOTIFICATION received!\nReceiving datapoint sample...");
 					
 					// RECEIVE DATAPOINT
-					ArrayList<DataPoint> receivedDescriptors;
 					ObjectInputStream oi = new ObjectInputStream(inFromMember);
-					receivedDescriptors = (ArrayList<DataPoint>)oi.readObject();
+					ArrayList<DataPoint> readObject = (ArrayList<DataPoint>)oi.readObject();
+					ArrayList<DataPoint> receivedDescriptors = readObject;
 					System.out.println("DONE");
 					// SEND GO
 					outToMember.writeBytes("GO\n");
@@ -110,17 +110,22 @@ public class Member{
 					receivedDescriptors = (ArrayList<DataPoint>) oi.readObject();
 					System.out.println("DATAPOINT SAMPLE RECEIVED!");
 					// SEND EXEC_NOTIFICATION TO THE REST OF THE CLUSTER
-					broadcastMessage(Command.EXEC_NOTIFICATION.getValue(), this.cluster.getMembers());
-					System.out.println("BROADCAST EXEC_NOT SENT");
 					// SEND RECEIVED DATAPOINT
 					ArrayList<Socket> listSockets = new ArrayList<Socket>();
 					for(MemberInfo mem : this.cluster.getMembers()){
 						if (mem.getMemberID() != -1){
-							System.out.println("SENDING SAMPLE DATA POINT TO OTHERS");
+							
 							Socket sk = new Socket(mem.getAddress(),mem.getPort());
+							DataOutputStream dos = new DataOutputStream(sk.getOutputStream());
+							dos.writeBytes(Command.EXEC_NOTIFICATION.getValue()+'\n');
+							System.out.println("EXEC_NOTIFICATION SENT");
+
+							System.out.println("SENDING SAMPLE DATA POINT TO OTHERS");
+
 							ObjectOutputStream oo = new ObjectOutputStream(sk.getOutputStream());
 							oo.writeObject(receivedDescriptors);
 							oo.flush();
+							
 							listSockets.add(sk);
 						}
 					}
@@ -311,6 +316,7 @@ public class Member{
 				dSocket = new Socket(destinationMember.getAddress(), destinationMember.getPort());
 				DataOutputStream outToMember = new DataOutputStream(dSocket.getOutputStream());
 				outToMember.writeBytes(message+'\n');
+				dSocket.close();
 				
 			} catch (UnknownHostException e1) {
 				System.err.println(String.format("Could send message %s to member [%s] unknown host exception", message, destinationMember.getMemberID()));
