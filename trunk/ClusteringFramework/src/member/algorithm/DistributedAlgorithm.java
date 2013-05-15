@@ -23,6 +23,13 @@ public class DistributedAlgorithm {
 	private ExistDBDriver dbDriver;
 	private Socket parent;
 	private String titleResult;
+	public String getTitleResult() {
+		return titleResult;
+	}
+
+	public int getScoreResult() {
+		return scoreResult;
+	}
 	private int scoreResult;
 	
 	public SignalType getSignalType(){
